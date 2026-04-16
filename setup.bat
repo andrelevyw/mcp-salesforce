@@ -30,7 +30,7 @@ echo  [OK] Claude Code encontrado.
 :: Install dependencies
 echo.
 echo  Instalando dependencias Python...
-pip install -r "%~dp0requirements.txt" --quiet
+python -m pip install -r "%~dp0requirements.txt" --quiet
 if %errorlevel% neq 0 (
     echo  [ERRO] Falha ao instalar dependencias.
     pause
@@ -68,7 +68,7 @@ set PROXY_PATH=%~dp0proxy.js
 :: Register MCP server in Claude Code
 echo.
 echo  Registrando MCP server no Claude Code...
-claude mcp add salesforce -s user -- node "%PROXY_PATH%" -e SALESFORCE_USERNAME="%SF_USER%" -e SALESFORCE_PASSWORD="%SF_PASS%" -e SALESFORCE_SECURITY_TOKEN="%SF_TOKEN%" -e SALESFORCE_INSTANCE_URL="%SF_INSTANCE%"
+claude mcp add salesforce -s user -e SALESFORCE_USERNAME="%SF_USER%" -e SALESFORCE_PASSWORD="%SF_PASS%" -e SALESFORCE_SECURITY_TOKEN="%SF_TOKEN%" -e SALESFORCE_INSTANCE_URL="%SF_INSTANCE%" -- node "%PROXY_PATH%"
 
 if %errorlevel% neq 0 (
     echo  [ERRO] Falha ao registrar no Claude Code.
