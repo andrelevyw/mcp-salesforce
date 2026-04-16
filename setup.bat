@@ -79,13 +79,36 @@ if %errorlevel% neq 0 (
 
 echo  [OK] MCP server registrado.
 
+:: Configure CLAUDE.md with SF context
+echo.
+echo  Configurando contexto do Salesforce...
+set CLAUDE_DIR=%USERPROFILE%\.claude
+set CLAUDE_MD=%CLAUDE_DIR%\CLAUDE.md
+set IMPORT_LINE=@~/mcp-salesforce/claude-context/salesforce_schema.md
+
+if not exist "%CLAUDE_DIR%" mkdir "%CLAUDE_DIR%"
+
+:: Check if line already exists in CLAUDE.md
+set ALREADY_EXISTS=0
+if exist "%CLAUDE_MD%" (
+    findstr /C:"%IMPORT_LINE%" "%CLAUDE_MD%" >nul 2>&1
+    if !errorlevel! equ 0 set ALREADY_EXISTS=1
+)
+
+if !ALREADY_EXISTS! equ 1 (
+    echo  [OK] Contexto do Salesforce ja configurado.
+) else (
+    (echo(%IMPORT_LINE%)>>"%CLAUDE_MD%"
+    echo  [OK] Contexto do Salesforce adicionado ao CLAUDE.md.
+)
+
 echo.
 echo  ==========================================
 echo   Setup concluido!
 echo  ==========================================
 echo.
-echo  Proximo passo: reinicie o Claude Code.
-echo  Depois, pergunte algo como:
-echo    "Quais sao meus projetos ativos?"
+echo  Proximo passo: reinicie o VS Code.
+echo  Depois, abra o Claude Code e pergunte algo como:
+echo    "Quais sao os projetos M^&A ativos?"
 echo.
 pause
