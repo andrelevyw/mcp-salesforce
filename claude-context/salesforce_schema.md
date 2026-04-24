@@ -72,6 +72,40 @@ Preparação de Materiais → Market Sounding → Negociação de NBO → Dilig�
 
 ---
 
+## Objeto: DCM_Project__c (Projetos DCM)
+
+### Campos principais
+| Campo API | Label | Tipo | Notas |
+|---|---|---|---|
+| `Name` | DCM Project Name | string | Codinome do projeto |
+| `Client__c` | Client | string | Nome do cliente (texto, não reference) |
+| `Status__c` | Status | picklist | **Ativo, Estaleiro, Morto, Liquidado** |
+| `Stage__c` | Stage | picklist | **Material preparation, Structuring/Distributing, Closing/Settlement** |
+| `Stage_Distribuition__c` | Stage Distribuition | picklist | **Investor list preparation, Roadshow, Investor feedback, Settlement process** |
+| `DCM_Type__c` | DCM Type | string | Tipo do produto DCM (fórmula) |
+| `Fee_total_bruto_DCM_R_mm__c` | Fee total bruto DCM (R$mm) | currency | Fee bruto |
+| `Fee_canal_estimado_R_mm__c` | Fee canal estimado (R$mm) | currency | Fee do canal de distribuição |
+| `Valor_da_capta_o__c` | Valor da captação | currency | Montante da operação |
+| `Prob_success__c` | Prob. success | percent | Probabilidade de sucesso |
+| `Execution_Leader__c` | Execution Leader | string | Líder de execução (fórmula) |
+| `Distribution_Leader__c` | Distribution Leader | string | Líder de distribuição (fórmula) |
+| `Oportunidade__c` | Opportunity | reference → Opportunity | Opp de origem |
+| `Mandate_signed__c` | Mandate signed | boolean | Mandato assinado |
+
+### Datas do pipeline
+| Campo API | Label | Notas |
+|---|---|---|
+| `Kick_Off__c` | Kick-Off | Início do mandato |
+| `Roadshow_Start__c` | Roadshow Start | Início do roadshow |
+| `First_investor_approval__c` | First investor approval | Primeira aprovação de investidor |
+| `Settlement__c` | Settlement | Liquidação |
+| `Estimated_closing__c` | Estimated closing | Closing estimado |
+
+### Referências
+- `Client__c` é string (fórmula), não reference — diferente do M_A_Project__c
+
+---
+
 ## Objeto: Recebimentos__c (Recebimentos futuros)
 
 ### Campos
@@ -134,7 +168,147 @@ Preparação de Materiais → Market Sounding → Negociação de NBO → Dilig�
 | `Qualification_Meeting_Date__c` | Qualification Meeting Date | date | Data da QM |
 | `Tipo_de_QM__c` | Tipo de QM | picklist (Lead, Nurturing) | |
 | `Proposal_Sent_Date__c` | Proposal Sent Date | date | |
-- Stages: Qualification → Proposal → Negotiation → Closed Won / Closed Lost
+- Stages e probabilidades: Qualification (10%) → Proposal (75%) → Negotiation (90%) → Closed Won (100%) / Closed Lost (0%)
+- **Closed Won = mandato assinado** (início da execução), não deal fechado. A execução vive no M_A_Project__c
+
+---
+
+## Objeto: Account (Empresas — clientes, targets, buyers)
+
+### Campos-chave
+| Campo API | Label | Tipo | Notas |
+|---|---|---|---|
+| `Name` | Account Name | string | Nome da empresa |
+| `Type` | Account Type | picklist | **Target Sophisticated, Target Unsophisticated, Buyer Local, Buyer Foreign, Acquired**, Consultant, Legal Adviser, Bank, Investor, Wealth Manager, Auditor, Independente, Press, Supplier |
+| `Tier__c` | Tier | picklist | **1, 2, 3** — classificação M&A |
+| `Tier_DCM__c` | Tier DCM | picklist | **1, 2, 3** — classificação DCM |
+| `OwnerId` | Owner | reference → User | Dono da account |
+| `Originating_Partner__c` | Originating Partner | reference → User | Quem originou |
+
+### Classificação setorial (GICS RGS — hierarquia ativa)
+| Campo API | Label | Notas |
+|---|---|---|
+| `Coverage_novo__c` | GICS RGS 1 | Nível 1: Agronegocio, Consumo, Educacao, Energia, FIG, Industrials, Quimicos, Saude, Sponsors, Tech, Varejo, Business services, Real Estate, Infraestrutura, Telecom, Mineracao, Florestas e derivados, Midia e entretenimento |
+| `Segmento__c` | GICS RGS 2 | Nível 2: ~140 sub-setores (Hospital, Fintech, Solar, ISP, Private Equity, etc.) |
+| `Subsegmento__c` | GICS RGS 3 | Nível 3: ~200 sub-sub-setores |
+| `GICS_RGS_4__c` | GICS RGS 4 | Nível 4 (multipicklist) |
+
+Existe hierarquia paralela padrão (`GICS_1__c` a `GICS_6__c`) e campos legados Zoho (`Industry_Primary_Zoho__c`, `Industry_Secondary_Zoho__c`). Preferir a hierarquia GICS RGS.
+
+### Dados financeiros
+| Campo API | Label | Tipo |
+|---|---|---|
+| `Revenues__c` | Revenues (R$mm) | currency |
+| `EBITDA__c` | EBITDA (R$mm) | currency |
+| `Net_Debt__c` | Net Debt (R$mm) | currency |
+| `Net_Income__c` | Net Income | currency |
+| `YoY_growth__c` | YoY growth | percent |
+
+### Campos de buyer/sponsor
+| Campo API | Label | Tipo | Notas |
+|---|---|---|---|
+| `AUM_em_R_bilh_es__c` | AUM (R$ bilhões) | currency | |
+| `Minimum_Ticket_Size__c` | Min Ticket (USDmm) | currency | |
+| `Maximum_Ticket_Size__c` | Max Ticket (USDmm) | currency | |
+| `Control__c` | Control | boolean | Faz deals de controle |
+| `Minority__c` | Minority | boolean | Faz deals de minoria |
+| `Validado_com_comprador__c` | Active buyer demand? | boolean | |
+
+### Campos de atividade/nurturing
+| Campo API | Label | Tipo |
+|---|---|---|
+| `Next_Action__c` | Next Action | textarea |
+| `Next_Action_Date__c` | Next Action Date | date |
+| `Last_Coverage_Meeting_or_Checklist__c` | Last Coverage Meeting | date |
+| `Key_Account__c` | Special Nurturing | boolean |
+| `LastActivityDate` | Last Activity | date |
+
+### Campos DCM no Account
+| Campo API | Label | Tipo | Notas |
+|---|---|---|---|
+| `DCM_Buyer_new__c` | DCM Buyer | boolean | Fit para produtos DCM |
+| `Tipo_DCM__c` | Tipo DCM | picklist | Asset, FO/MFO, Wealth, AAI, Fundacao, Seguradora, UHNWI |
+| `AUM_cr_dito_privado__c` | AUM crédito privado (R$ bilhões) | currency | |
+| `Next_Action_DCM__c` | Next Action DCM | textarea | |
+| `Next_Action_Date_DCM__c` | Next Action Date DCM | date | |
+
+### Campos de identidade
+| Campo API | Label | Tipo |
+|---|---|---|
+| `CNPJ__c` | CNPJ | string |
+| `Website` | Website | url |
+| `Capital_Aberto__c` | Capital Aberto? | picklist — Fechado, Categoria B, Categoria A, Listado |
+| `Tech_Type__c` | Tech Type | picklist — Agritech, Cybersecurity, Edtech, Fintech, Healthtech, Logtech, Proptech, Retail Tech, Software / Hardware |
+
+---
+
+## Objeto: Event (Reuniões e atividades)
+
+### Campos-chave
+| Campo API | Label | Tipo | Notas |
+|---|---|---|---|
+| `Subject` | Subject | combobox | Assunto da reunião |
+| `WhoId` | Name | reference → Contact/Lead | Pessoa relacionada |
+| `WhatId` | Related To | reference → Account/Opportunity/M_A_Project__c/etc. | Registro relacionado |
+| `ActivityDateTime` | Due Date Time | datetime | Data/hora |
+| `ActivityDate` | Due Date Only | date | Data |
+| `OwnerId` | Assigned To | reference → User | Responsável |
+| `IsAllDayEvent` | All-Day Event | boolean | |
+| `Description` | Description | textarea | |
+
+### Uso na RGS
+- Events medem **atividade de prospecção**: QMs, first meetings, reuniões com buyers
+- `WhatId` linkado a Account ou Opportunity indica reunião comercial
+- Para medir atividade de um sócio: filtrar por `OwnerId` e período
+
+---
+
+## Objeto: Lead (Leads — empresas/pessoas mapeadas)
+
+### Campos-chave
+| Campo API | Label | Tipo | Notas |
+|---|---|---|---|
+| `FirstName` / `LastName` | Nome | string | |
+| `Company` | Company | string | Empresa |
+| `Status` | Status | picklist | **Qualified, Open, Working, Archived Could not Connect, Unqualified** |
+| `LeadSource` | Lead Source | picklist | **Outbound Broker, Outbound Cold, Outbound Network, Inbound Network, Inbound Broker, Cold Inbound** |
+| `Lead_Originator__c` | Originating Partner | reference → User | Quem originou |
+| `Lead_Source_io__c` | Source Type | picklist | **Inbound, Outbound** |
+| `IsConverted` | Converted | boolean | |
+| `ConvertedDate` | Converted Date | date | |
+| `ConvertedAccountId` | Converted Account | reference → Account | |
+| `Tier__c` | Tier | picklist | 1, 2, 3 |
+| `M_A__c` | M&A | boolean | Lead relevante para M&A |
+| `DCM__c` | DCM | boolean | Lead relevante para DCM |
+| `Filtro__c` | Filtro | picklist | **Fit for RGS, No Fit for RGS, TBD** |
+| `Pos_or_Neg_Conversion__c` | Pos. or Neg. Conversion | picklist | **Positive, Negative** |
+
+### Classificação setorial
+Mesma hierarquia GICS RGS do Account: `Coverage_novo__c`, `Segmento__c`, `Subsegmento__c`
+
+### Dados financeiros
+`Revenues__c`, `EBITDA__c`, `Net_Debt__c`, `Faturamento_estimado_R_mm__c`
+
+### Stage pipelines no Lead
+- `Campaign_Stage__c` — estágio em campanhas outbound
+- `Mkt_Sounding_Stage__c` — estágio no market sounding (Lead usado como buyer target)
+- `Partner_Broker_Stage__c` — estágio no canal de parceiros/brokers
+
+---
+
+## Mapeamento User → Nome (sócios e pessoas-chave)
+
+| Nome | User Id |
+|---|---|
+| André Levy | `0058V00000COTHIQA5` |
+| Fabio Jamra | `0051H000009h1UQQAY` |
+| Giovana Domine | `0058V00000E5mXQQAZ` |
+| Guilherme Stuart | `0051H000007VwBfQAK` |
+| Henrique Polo | `0058V00000CDJzxQAH` |
+| Hugo Pacheco | `0051H000007VwBkQAK` |
+| Pedro Scharam | `0051H000009h1UVQAY` |
+| Renato Stuart | `0051H000009h0SwQAI` |
+| Stephanie Chu | `0058V00000E5ibOQAR` |
 
 ---
 
@@ -145,11 +319,48 @@ Preparação de Materiais → Market Sounding → Negociação de NBO → Dilig�
 - Account com dados ricos mas sem Opp pode significar infos de fontes indiretas (pesquisa, terceiros, calls informais)
 - **A data de criação de uma Opp não é dado relevante** — muitos sales devs só criam a Opp quando a reunião acontece
 
-### Equity Deal (EquityDeal__c)
-- **Buyer Demand**: conversa com buyer que mencionou interesse em target específico (mais relevante)
-- **Idea**: ideia interna do time para testar (menos relevante)
-- Campo `Idea_Marketing_Stage__c` indica o estágio
-- Campo `Data_da_demanda__c` indica quando a demanda foi levantada
+### EquityDeal__c (junção buyer ↔ seller)
+
+Objeto de junção bilateral: conecta um **buyer** (Account ou Lead) a um **seller** (Account ou Lead), opcionalmente vinculado a um M&A Project. Tem dois usos:
+- **Durante execução**: registra cada comprador abordado num processo de M&A
+- **Standalone**: matchmaking entre oferta e demanda, fora de mandato
+
+**Lookups principais:**
+| Campo API | Label | Referencia | Notas |
+|---|---|---|---|
+| `BuyerAccount__c` | BuyerAccount | Account | Lado comprador |
+| `BuyerLead__c` | BuyerLead | Lead | Lado comprador (se ainda Lead) |
+| `Buyer_Contact__c` | Buyer Contact | Contact | Pessoa do comprador |
+| `SellerAccount__c` | SellerAccount | Account | Lado vendedor |
+| `SellerLead__c` | SellerLead | Lead | Lado vendedor (se ainda Lead) |
+| `Seller_Contact__c` | Seller Contact | Contact | Pessoa do vendedor |
+| `Sell_Side_Project__c` | M&A Project | M_A_Project__c | Projeto de execução (opcional — permite EQDs standalone) |
+
+**Campos de classificação:**
+| Campo API | Label | Tipo | Valores |
+|---|---|---|---|
+| `Origem_do_EQD__c` | Origem do EQD | picklist | **Idea, Buyer Demand, Seller Demand** |
+| `EQD_Status__c` | EQD Status | picklist | **Active, Dead, Waiting for feedback** |
+| `Deal_Rating__c` | Deal Rating | picklist | **Hot, Warm, Cold, Dead** |
+| `Buyer_Stage__c` | Buyer Stage | picklist | **Idea, Buyer Demand, Waiting Buyer Feedback, Buyer Approved, Buyer Declined, Future Buyer Demand** |
+| `Seller_Stage__c` | Seller Stage | picklist | **Idea, Seller Demand, Waiting Seller Feedback, Seller Approved, Seller Declined, Future Seller Demand** |
+| `Idea_Marketing_Stage__c` | Idea/Marketing Stage | picklist | **Present to Buyer, Waiting Buyer Feedback, Present to Seller, Waiting Seller Feedback** |
+| `Deal_Stage__c` | Deal Stage (mkt sounding) | picklist | **Approved by client, Email sent, NDA, Infopack Sent, NBO, Due Diligence, Contracts, Closing** |
+| `Tier__c` | Tier | picklist | **Tier 1, Tier 2, Tier 3** |
+
+**Campos de inteligência:**
+| Campo API | Label | Tipo |
+|---|---|---|
+| `Buyer_Feedback_1__c` | Buyer Feedback 1 | textarea |
+| `Buyer_Feedback_2__c` | Buyer Feedback | textarea |
+| `Feedback_type__c` | Feedback type | picklist — razões estruturadas de declínio (tese não se aplica, timing, porte, não olham Brasil, valuation, sem contato, etc.) |
+| `Seller_Feedback__c` | Seller Feedback | textarea |
+| `Latest_Insight_Buyer__c` | Buyer Latest Insight | string |
+| `Comments__c` | Detalhamento da demanda | textarea |
+| `Data_da_demanda__c` | Data da demanda | date |
+| `Potential_Fee__c` | Potential Fee (R$mm) | currency |
+
+**Nota:** não tem lookup para Opportunity — a conexão com o funil é via M_A_Project__c.
 
 ### Lead → Account
 - Lead é criado quando mapeamos uma empresa/pessoa
